@@ -1,0 +1,41 @@
+# Python временные файлы
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+myrobot_env/
+env/
+venv/
+ENV/
+
+# VS Code
+.vscode/
+.vscode-server/
+
+# Операционные системы
+.DS_Store
+Thumbs.db
+
+# Логи и данные
+*.log
+*.csv
+*.dat
+*.pid
+
+# Конфигурационные секреты
+config/secrets.ini
+config/*.key
+
+# Временные и тестовые файлы
+test_*.py
+*temp*.py
+
+
+# Пользовательские исключения
+
+
+
+
