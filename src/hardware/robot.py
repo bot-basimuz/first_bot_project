@@ -4,6 +4,7 @@ from gpiozero import DistanceSensor
 import atexit
 #import leds_led_shim
 from src.hardware.servos import Servos
+from src.hardware.encoder_counter import EncoderCounter
 
 class Robot:
     def __init__(self, motorhat_addr=0x6F):
@@ -18,6 +19,10 @@ class Robot:
         self.right_distance_sensor = DistanceSensor(echo=5, trigger=6, queue_len=2)
         self.front_distance_sensor = DistanceSensor(echo=24, trigger=23, queue_len=2)
 
+        # Setap the Encoder
+        # EncoderCounter.set_constants(self.wheel_diameter_mm, self.ticks_per_revolution)
+        self.left_encoder = EncoderCounter(4)
+        self.right_encoder = EncoderCounter(26)
 
         # Setup the Leds (если есть)
         #self.leds = leds_led_shim.Leds()
@@ -63,6 +68,10 @@ class Robot:
         #self.leds.clear()
         #self.leds.show()
 
+        # Clear any sensor handlers
+        self.left_encoder.stop()
+        self.right_encoder.stop()
+
         # Reset the servos
         self.servos.stop_all()
 
@@ -71,3 +80,4 @@ class Robot:
     
     def set_tilt(self, angle):
         self.servos.set_servo_angle(0, angle)
+
