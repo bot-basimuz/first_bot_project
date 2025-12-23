@@ -22,8 +22,12 @@ class Robot:
         # Setap the Encoder
         # EncoderCounter.set_constants(self.wheel_diameter_mm, self.ticks_per_revolution)
         self.left_encoder = EncoderCounter(4)
+<<<<<<< Updated upstream
         self.right_encoder = EncoderCounter(25)
 
+=======
+        self.right_encoder = EncoderCounter(26)
+>>>>>>> Stashed changes
 
         # Setup the Leds (если есть)
         #self.leds = leds_led_shim.Leds()
