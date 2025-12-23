@@ -3,7 +3,7 @@ from gpiozero import DistanceSensor
 
 import atexit
 #import leds_led_shim
-from servos import Servos
+from src.hardware.servos import Servos
 
 class Robot:
     def __init__(self, motorhat_addr=0x6F):
