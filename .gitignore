@@ -1,0 +1,19 @@
+# Служебные папки сборки
+build/
+install/
+log/
+
+# Python кэш
+__pycache__/
+*.pyc
+*.pyo
+
+# OS файлы
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+*.tmp
+*.swp
+*.swo
+*~
