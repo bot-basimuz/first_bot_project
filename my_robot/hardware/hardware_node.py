@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -21,6 +20,9 @@ class HardwareNode(Node):
         
         # Инициализация железа (как в вашем robot.py)
         self.init_robot()
+
+        # Таймер проверки энкодеров
+        self.encoder_test_timer = self.create_timer(0.5, self.test_encoders) 
         
         # Подписка на команды скорости
         self.subscription = self.create_subscription(
@@ -28,6 +30,7 @@ class HardwareNode(Node):
         
         # Публикация данных с датчиков (10 Hz)
         self.dist_pub = self.create_publisher(Range, '/sensors/distance', 10)
+
         # Таймер для публикации датчиков 
         self.sensor_timer = self.create_timer(0.1, self.publish_sensors)
 
@@ -73,9 +76,26 @@ class HardwareNode(Node):
         time.sleep(0.1) # Стабилизация
         # =======================================
         
-        # Энкодеры и сервы пока закомментируй (они вызывают ошибки)
-        # self.left_encoder = EncoderCounter(4)
-        # self.right_encoder = EncoderCounter(26)
+        # === Энкодеры ===
+        
+        try:
+            GPIO.remove_event_detect(12)
+        except:
+            pass
+        try:
+            GPIO.remove_event_detect(26)
+        except:
+            pass
+        
+        time.sleep(0.2)  # Пауза для освобождения пинов
+
+
+        self.left_encoder = EncoderCounter(12)
+        self.right_encoder = EncoderCounter(26)
+
+        self.left_ticks = 0
+        self.right_ticks = 0
+
         # self.servos = Servos(addr=addr)
         
         self.current_left_speed = 0
@@ -178,20 +198,35 @@ class HardwareNode(Node):
     def heartbeat_callback(self):
         self.get_logger().info('Hardware Node работает', throttle_duration_sec=5)
     
+    def test_encoders(self):
+        """Простой вывод счёта энкодеров в консоль"""
+        if hasattr(self, 'left_encoder') and hasattr(self, 'right_encoder'):
+            left = self.left_encoder.get_count()
+            right = self.right_encoder.get_count()
+            if left != self.left_ticks or right != self.right_ticks:
+                self.get_logger().info(f'Encoders: L={left}, R={right}')
+                self.left_ticks = left
+                self.right_ticks = right
+
     def stop_all(self):
-        """Из вашего robot.py"""
+        """Остановка всех устройств"""
         self.left_motor.run(Raspi_MotorHAT.RELEASE)
         self.right_motor.run(Raspi_MotorHAT.RELEASE)
+        
+        # Остановка энкодеров (освобождение пинов)
+        if hasattr(self, 'left_encoder'):
+            self.left_encoder.stop()
+        if hasattr(self, 'right_encoder'):
+            self.right_encoder.stop()
+            
         GPIO.cleanup()
-        # self.left_encoder.stop()
-        # self.right_encoder.stop()
-        # self.servos.stop_all()
         self.get_logger().info('Все моторы остановлены')
+
 
 def main(args=None):
     rclpy.init(args=args)
     node = HardwareNode()
-    
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
