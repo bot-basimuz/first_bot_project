@@ -5,7 +5,7 @@ import threading
 import time
 
 class EncoderCounter:
-    """Счётчик энкодера на базе опроса (polling) - 100% надежно"""
+    """Счётчик энкодера на базе опроса (polling)"""
     
     ticks_to_mm_const = None
     
@@ -21,6 +21,9 @@ class EncoderCounter:
         self._running = True
         self._last_state = None
         
+        # Блокировка для потокобезопасного доступа
+        self.lock = threading.Lock()
+
         # Настройка пина
         GPIO.setup(self.pin_number, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         
@@ -36,20 +39,23 @@ class EncoderCounter:
             
             # Детектируем спад (переход из 1 в 0)
             if self._last_state == 1 and current_state == 0:
-                self.pulse_count += self.direction
+                with self.lock:  # Защита записи
+                    self.pulse_count += self.direction
                 if self.callback:
                     self.callback()
             
             self._last_state = current_state
-            time.sleep(0.0005)  # 500 мкс - оптимально для энкодеров
+            time.sleep(0.0001)  # 500 мкс - оптимально для энкодеров
     
     def get_count(self):
         """Вернуть текущее значение счётчика"""
-        return self.pulse_count
+        with self.lock: # Защита чтения
+            return self.pulse_count
     
     def reset(self):
         """Сбросить счётчик"""
-        self.pulse_count = 0
+        with self.lock:
+            self.pulse_count = 0
     
     def set_direction(self, direction):
         """Установить направление (1 или -1)"""
